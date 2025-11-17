@@ -67,15 +67,15 @@ if [ -f "$ASU_FILE" ]; then
 fi
 
 #设置nginx默认配置
-NGINX_FILE="../feeds/packages/net/nginx-util/files/nginx.config"
-NGINX_URL="https://gist.githubusercontent.com/huanchenshang/df9dc4e13c6b2cd74e05227051dca0a9/raw/nginx.default.config"
+#NGINX_FILE="../feeds/packages/net/nginx-util/files/nginx.config"
+#NGINX_URL="https://gist.githubusercontent.com/huanchenshang/df9dc4e13c6b2cd74e05227051dca0a9/raw/nginx.default.config"
 
-if wget -O "$NGINX_FILE" "$NGINX_URL"; then
-    echo "nginx默认配置已成功替换！"
-else
-    echo "错误：无法下载nginx文件,请检查URL和网络连接。"
-	exit 1
-fi
+#if wget -O "$NGINX_FILE" "$NGINX_URL"; then
+#    echo "nginx默认配置已成功替换！"
+#else
+#    echo "错误：无法下载nginx文件,请检查URL和网络连接。"
+#	exit 1
+#fi
 
 #修复quickstart温度显示
 QUICKSTART_FILE="../package/luci-app-quickstart/luasrc/controller/istore_backend.lua"
