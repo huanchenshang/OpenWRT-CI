@@ -5,8 +5,6 @@ global {
     check_interval: 86400s
     auto_config_kernel_parameter: true
     allow_insecure: false
-    bandwidth_max_tx: '50 mbps'
-    bandwidth_max_rx: '200 mbps'
 }
 
 subscription {
@@ -48,3 +46,4 @@ routing {
   domain(geosite:cn) -> direct
   fallback: proxy
 }
+
