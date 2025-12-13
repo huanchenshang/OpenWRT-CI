@@ -111,6 +111,8 @@ rules:
   - DST-PORT,5349,REJECT
   - DST-PORT,19302,REJECT
   - RULE-SET,ads,🛑 广告拦截
+  - RULE-SET,private,🟢 直连
+  - RULE-SET,cn_ip,🟢 直连
   - RULE-SET,custom_direct,🟢 直连
   - RULE-SET,custom_proxy,🚀 节点选择
   - RULE-SET,spotify,🎧 Spotify
@@ -129,9 +131,7 @@ rules:
   - RULE-SET,geolocation-!cn,🚀 节点选择
   - RULE-SET,google_ip,🇬 谷歌服务,no-resolve
   - RULE-SET,telegram_ip,📲 Telegram,no-resolve
-  - RULE-SET,private,🟢 直连
   - RULE-SET,cn,🟢 直连
-  - RULE-SET,cn_ip,🟢 直连
   - MATCH,🐟 漏网之鱼
 
 rule-anchor:
@@ -150,7 +150,7 @@ rule-providers:
   telegram: {  <<: *domain, path: ./providers/rule/telegram.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/telegram.mrs"}
   #onedrive: {  <<: *domain, path: ./providers/rule/onedrive.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/onedrive.mrs"}
   #adobe: {  <<: *domain, path: ./providers/rule/adobe.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/adobe.mrs"}
-  #adobe@cn: {  <<: *domain, path: ./providers/rule/adobe.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/adobe@cn.mrs"}
+  #adobe@cn: {  <<: *domain, path: ./providers/rule/adobe@cn.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/adobe@cn.mrs"}
   #steam: {  <<: *domain, path: ./providers/rule/steam.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/steam.mrs"}
   microsoft: {  <<: *domain, path: ./providers/rule/microsoft.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/microsoft.mrs"}
   apple: { <<: *domain, path: ./providers/rule/apple.mrs, url: "https://gh-proxy.com/https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/apple-cn.mrs"}
