@@ -58,14 +58,20 @@ fi
 
 #去除luci-app-attendedsysupgrade
 LUCI_MAKEFILE="../feeds/luci/collections/luci/Makefile"
+NGINX_MAKEFILE="../feeds/luci/collections/luci-nginx/Makefile"
 
 if [ -f "$LUCI_MAKEFILE" ]; then
-
     sed -i '/+luci-app-attendedsysupgrade/d' "$LUCI_MAKEFILE"
-    
-    echo "luci-app-attendedsysupgrade 已删除！"
+    echo "已从 luci 集合中删除 luci-app-attendedsysupgrade"
 else
-    echo "删除失败文件没有找到"
+    echo "错误：未找到 $LUCI_MAKEFILE"
+fi
+
+if [ -f "$NGINX_MAKEFILE" ]; then
+    sed -i '/+luci-app-attendedsysupgrade/d' "$NGINX_MAKEFILE"
+    echo "已从 luci-nginx 集合中删除 luci-app-attendedsysupgrade"
+else
+    echo "错误：未找到 $NGINX_MAKEFILE"
 fi
 
 #设置nginx默认配置
