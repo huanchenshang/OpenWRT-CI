@@ -141,23 +141,23 @@ else
 fi
 
 #添加quickfile文件管理
-quickfile_url="https://github.com/sbwml/luci-app-quickfile.git"
-quickfile_dir="$GITHUB_WORKSPACE/wrt/package/emortal/quickfile"
-if [ -d "$quickfile_dir" ]; then
-    rm -rf "$quickfile_dir"
-fi
-git clone --depth 1 "$quickfile_url" "$quickfile_dir"
+#quickfile_url="https://github.com/sbwml/luci-app-quickfile.git"
+#quickfile_dir="$GITHUB_WORKSPACE/wrt/package/emortal/quickfile"
+#if [ -d "$quickfile_dir" ]; then
+#    rm -rf "$quickfile_dir"
+#fi
+#git clone --depth 1 "$quickfile_url" "$quickfile_dir"
 
-makefile_path="$quickfile_dir/quickfile/Makefile"
-if [ -f "$makefile_path" ]; then
-    sed -i '/\t\$(INSTALL_BIN) \$(PKG_BUILD_DIR)\/quickfile-\$(ARCH_PACKAGES)/c\
-\tif [ "\$(ARCH_PACKAGES)" = "x86_64" ]; then \\\
-\t\t\$(INSTALL_BIN) \$(PKG_BUILD_DIR)\/quickfile-x86_64 \$(1)\/usr\/bin\/quickfile; \\\
-\telse \\\
-\t\t\$(INSTALL_BIN) \$(PKG_BUILD_DIR)\/quickfile-aarch64_generic \$(1)\/usr\/bin\/quickfile; \\\
-\tfi' "$makefile_path"
-	echo "quickfie添加成功!"
-fi
+#makefile_path="$quickfile_dir/quickfile/Makefile"
+#if [ -f "$makefile_path" ]; then
+#    sed -i '/\t\$(INSTALL_BIN) \$(PKG_BUILD_DIR)\/quickfile-\$(ARCH_PACKAGES)/c\
+#\tif [ "\$(ARCH_PACKAGES)" = "x86_64" ]; then \\\
+#\t\t\$(INSTALL_BIN) \$(PKG_BUILD_DIR)\/quickfile-x86_64 \$(1)\/usr\/bin\/quickfile; \\\
+#\telse \\\
+#\t\t\$(INSTALL_BIN) \$(PKG_BUILD_DIR)\/quickfile-aarch64_generic \$(1)\/usr\/bin\/quickfile; \\\
+#\tfi' "$makefile_path"
+#	echo "quickfie添加成功!"
+#fi
 
 #更换argon源
 argon_url="https://github.com/huanchenshang/luci-theme-argon.git"
