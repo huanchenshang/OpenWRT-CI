@@ -77,7 +77,7 @@ UPDATE_PACKAGE "unishare" "kenzok8/small-package" "main" "pkg"
 UPDATE_PACKAGE "luci-app-unishare" "kenzok8/small-package" "main" "pkg"
 
 # quickfile
-UPDATE_PACKAGE "luci-app-quickfile" "huanchenshang/luci-app-quickfile" "main" "pkg"
+UPDATE_PACKAGE "quickfile" "huanchenshang/luci-app-quickfile" "main"
 
 #更新软件包版本
 UPDATE_VERSION() {
