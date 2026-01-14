@@ -86,43 +86,43 @@ else
 fi
 
 #修复quickstart温度显示
-QUICKSTART_FILE="../package/luci-app-quickstart/luasrc/controller/istore_backend.lua"
-QUICKSTART_URL="https://gist.githubusercontent.com/puteulanus/1c180fae6bccd25e57eb6d30b7aa28aa/raw/istore_backend.lua"
+#QUICKSTART_FILE="../package/luci-app-quickstart/luasrc/controller/istore_backend.lua"
+#QUICKSTART_URL="https://gist.githubusercontent.com/puteulanus/1c180fae6bccd25e57eb6d30b7aa28aa/raw/istore_backend.lua"
 
-if wget -O "$QUICKSTART_FILE" "$QUICKSTART_URL"; then
-    echo "quickstart温度显示已成功修复！"
-else
-    echo "错误：无法下载quickstart文件,请检查URL和网络连接。"
-	exit 1
-fi
+#if wget -O "$QUICKSTART_FILE" "$QUICKSTART_URL"; then
+#    echo "quickstart温度显示已成功修复！"
+#else
+#    echo "错误：无法下载quickstart文件,请检查URL和网络连接。"
+#	exit 1
+#fi
 
 # 安装opkg distfeeds
-emortal_def_dir="$GITHUB_WORKSPACE/wrt/package/emortal/default-settings"
-distfeeds_conf="$emortal_def_dir/files/etc/opkg/distfeeds.conf"
+#emortal_def_dir="$GITHUB_WORKSPACE/wrt/package/emortal/default-settings"
+#distfeeds_conf="$emortal_def_dir/files/etc/opkg/distfeeds.conf"
 
-if [ -d "$emortal_def_dir" ] && [ ! -f "$distfeeds_conf" ]; then
-    mkdir -p "$(dirname "$distfeeds_conf")"
+#if [ -d "$emortal_def_dir" ] && [ ! -f "$distfeeds_conf" ]; then
+#    mkdir -p "$(dirname "$distfeeds_conf")"
 
-    cat <<'EOF' >"$distfeeds_conf"
-src/gz immortalwrt_base https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/base
-src/gz immortalwrt_luci https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/luci
-src/gz immortalwrt_packages https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/packages
-src/gz immortalwrt_routing https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/routing
-src/gz immortalwrt_telephony https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/telephony
-EOF
+#    cat <<'EOF' >"$distfeeds_conf"
+#src/gz immortalwrt_base https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/base
+#src/gz immortalwrt_luci https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/luci
+#src/gz immortalwrt_packages https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/packages
+#src/gz immortalwrt_routing https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/routing
+#src/gz immortalwrt_telephony https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/telephony
+#EOF
 
-    # 把 distfeeds.conf 安装到正确的 /etc/opkg/ 目录
-    sed -i "/define Package\/default-settings\/install/a\\
-\t\$(INSTALL_DIR) \$(1)/etc/opkg\n\
-\t\$(INSTALL_DATA) ./files/etc/opkg/distfeeds.conf \$(1)/etc/opkg/distfeeds.conf\n" "$emortal_def_dir/Makefile"
+#    # 把 distfeeds.conf 安装到正确的 /etc/opkg/ 目录
+#    sed -i "/define Package\/default-settings\/install/a\\
+#\t\$(INSTALL_DIR) \$(1)/etc/opkg\n\
+#\t\$(INSTALL_DATA) ./files/etc/opkg/distfeeds.conf \$(1)/etc/opkg/distfeeds.conf\n" "$emortal_def_dir/Makefile"
 
-    # 在 firstboot/postinit 时禁用签名校验（只注释掉 check_signature 行，避免误操作）
-    sed -i "/exit 0/i\\
+#    # 在 firstboot/postinit 时禁用签名校验（只注释掉 check_signature 行，避免误操作）
+#    sed -i "/exit 0/i\\
 # 禁用 opkg 签名校验（适用于 snapshot + 第三方源）\n\
-[ -f /etc/opkg.conf ] && sed -i '/^[[:space:]]*option[[:space:]]+check_signature/s/^/#/' /etc/opkg.conf\n" "$emortal_def_dir/files/99-default-settings"
+#[ -f /etc/opkg.conf ] && sed -i '/^[[:space:]]*option[[:space:]]+check_signature/s/^/#/' /etc/opkg.conf\n" "$emortal_def_dir/files/99-default-settings"
 
-    echo "ImmortalWrt 24.10-SNAPSHOT 软件源（aarch64_cortex-a53）已配置，并已禁用签名校验！"
-fi
+#    echo "ImmortalWrt 24.10-SNAPSHOT 软件源（aarch64_cortex-a53）已配置，并已禁用签名校验！"
+#fi
 
 #修改CPU 性能优化调节名称显示
 cpu_path="$GITHUB_WORKSPACE/wrt/feeds/luci/applications/luci-app-cpufreq"
