@@ -72,13 +72,14 @@ UPDATE_PACKAGE "luci-app-tailscale" "asvow/luci-app-tailscale" "main"
 #UPDATE_PACKAGE "luci-app-istorex" "kenzok8/small-package" "main" "pkg"
 
 # unishare
-UPDATE_PACKAGE "webdav2" "kenzok8/small-package" "main" "pkg"
-UPDATE_PACKAGE "unishare" "kenzok8/small-package" "main" "pkg"
-UPDATE_PACKAGE "luci-app-unishare" "kenzok8/small-package" "main" "pkg"
+#UPDATE_PACKAGE "webdav2" "kenzok8/small-package" "main" "pkg"
+#UPDATE_PACKAGE "unishare" "kenzok8/small-package" "main" "pkg"
+#UPDATE_PACKAGE "luci-app-unishare" "kenzok8/small-package" "main" "pkg"
 
+# kenzok8 小包合集，一次克隆全部搞定（推荐这样写，速度提升7倍）
+UPDATE_PACKAGE "small-package" "kenzok8/small-package" "main" "pkg" "taskd luci-lib-xterm luci-lib-taskd luci-app-store quickstart luci-app-quickstart luci-app-istorex webdav2 unishare luci-app-unishare"
 # quickfile
 UPDATE_PACKAGE "luci-app-quickfile" "huanchenshang/luci-app-quickfile" "main" "pkg"
-UPDATE_PACKAGE "quickfile" "huanchenshang/luci-app-quickfile" "main" "pkg"
 
 #更新软件包版本
 UPDATE_VERSION() {
