@@ -85,7 +85,7 @@ else
 	exit 1
 fi
 
-修复quickstart温度显示
+#修复quickstart温度显示
 QUICKSTART_FILE="../package/luci-app-quickstart/luasrc/controller/istore_backend.lua"
 QUICKSTART_URL="https://gist.githubusercontent.com/puteulanus/1c180fae6bccd25e57eb6d30b7aa28aa/raw/istore_backend.lua"
 
