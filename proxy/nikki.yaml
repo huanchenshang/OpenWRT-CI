@@ -10,23 +10,23 @@ fb: &fb {type: fallback, include-all: true, url: "http://www.gstatic.com/generat
 proxy-providers:
   🛫 机场名字:
     <<: *p
-    path: ./providers/proxy/airport1.yaml
+    path: ./providers/proxy/airport.yaml
     url: "订阅链接"
 
 # 全局配置
-log-level: error           
+log-level: error
 mode: rule
 allow-lan: true
 port: 7890
 socks-port: 7891
 redir-port: 7892
 mixed-port: 7893
-tproxy-port: 7894                
+tproxy-port: 7894
 find-process-mode: strict    
-global-client-fingerprint: chrome              
+global-client-fingerprint: chrome
 keep-alive-idle: 300       
 keep-alive-interval: 15
-disable-keep-alive: false   
+disable-keep-alive: false
 ipv6: true   
 unified-delay: true
 tcp-concurrent: true
@@ -41,6 +41,21 @@ external-ui: ui
 external-ui-name: ""
 external-ui-url: https://gh-proxy.com/https://github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages.zip
 
+# 嗅探
+sniffer:
+  enable: true
+  sniff:
+    HTTP:
+      ports: [80, 8080-8880]
+      override-destination: true
+    TLS:
+      ports: [443, 8443]
+    QUIC:
+      ports: [443, 8443]
+  skip-domain:
+    - "Mijia Cloud"
+    - "+.push.apple.com"
+
 #TUN设置
 tun:
   enable: true
@@ -48,71 +63,77 @@ tun:
   auto-route: true
   auto-redirect: true
   auto-detect-interface: true
-  dns-hijack:
-    - "any:53"
-    - "tcp://any:53"
+  dns-hijack: ["any:53","tcp://any:53"]
 
 # DNS模块
 dns:
   enable: true
+  cache-algorithm: arc
   listen: 0.0.0.0:1053
+  ipv6: true
+  respect-rules: true
   enhanced-mode: fake-ip
   fake-ip-range: 198.18.0.1/16
-  prefer-h3: true
-  ipv6: true
   fake-ip-filter-mode: blacklist
   fake-ip-filter:
     - "+.lan"
     - "+.local"
     - "+.xn--ngstr-lra8j.com"
-    - "rule-set:cn,private"
+    - "rule-set:fakeip-filter"
+    - "rule-set:private"
+    - "rule-set:cn"
   default-nameserver:
-    - 223.5.5.5
-    - 119.29.29.29
+    - https://223.5.5.5/dns-query
+    - https://119.29.29.29/dns-query
   proxy-server-nameserver:
     - https://dns.alidns.com/dns-query
     - https://doh.pub/dns-query
+  direct-nameserver:
+    - https://dns.alidns.com/dns-query
+    - https://doh.pub/dns-query
   nameserver:
-    - 223.5.5.5
-    - 119.29.29.29
+    - https://8.8.8.8/dns-query#RULES&ecs=223.5.5.0/24
 
 proxies:
-  - { name: 🟢 直连, type: direct, udp: true }
+  - {name: 🟢 直连, type: direct, udp: true}
 
 # 策略组
 proxy-groups:
   - { name: 🚀 节点选择, type: select, proxies: [♻️ 自动选择, 🛠️ 手动切换, 🇭🇰 香港节点, 🇨🇳 台湾节点, 🇸🇬 狮城节点, 🇯🇵 日韩节点, 🇺🇲 美国节点, 🏳️ 其他节点, 🟢 直连] }
-  - { name: 🛑 广告拦截, type: select, proxies: [REJECT, DIRECT] }
-  - { name: 🐟 漏网之鱼, <<: *pr }
-  - { name: 🎧 Spotify, <<: *pr }
-  - { name: 📹 Youtube, <<: *pr }
-  - { name: 💻 GitHub, <<: *pr }
-  #- { name: 🌐 OneDrive, <<: *sel }
-  #- { name: 🅰️ Adobe, <<: *pr  }
-  #- { name: 🎮 steam, <<: *pr  }
-  - { name: 📲 Telegram, <<: *pr }
-  - { name: 🤖 AI服务, <<: *pr }
-  - { name: 🇬 谷歌服务, <<: *pr }
-  - { name: Ⓜ️ 微软服务, <<: *pr }
-  - { name: 🍎 苹果服务, <<: *pr }
+  - {name: 🛑 广告拦截, type: select, proxies: [REJECT, DIRECT]}
+  - {name: 🐟 漏网之鱼, <<: *pr}
+  - {name: 📺 巴哈姆特, <<: *pr}
+  - {name: 🎧 Spotify, <<: *pr}
+  - {name: 📹 Youtube, <<: *pr}
+  - {name: 💻 GitHub, <<: *pr}
+  #- {name: 🌐 OneDrive, <<: *sel}
+  - {name: 🅰️ Adobe, <<: *pr}
+  - {name: ☁️ Cloudflare, <<: *pr}
+  - {name: 📲 Telegram, <<: *pr}
+  - {name: 🤖 AI服务, <<: *pr}
+  - {name: 🇬 谷歌服务, <<: *pr}
+  - {name: Ⓜ️ 微软服务, <<: *pr}
+  - {name: 🍎 苹果服务, <<: *sel}
   # 分隔,下面是地区分组
-  - { name: 🇭🇰 香港节点, <<: *sg, filter: "(?i)(香港|hk|hongkong|hong kong)" }
-  - { name: 🇨🇳 台湾节点, <<: *sg, filter: "(?i)(台|tw|taiwan)" }
-  - { name: 🇸🇬 狮城节点, <<: *sg, filter: "(?i)(新加坡|sg|singapore)" }
-  - { name: 🇯🇵 日韩节点, <<: *sg, filter: "(?i)(日本|jp|japan|韩|kr|korea)" }
-  - { name: 🇺🇲 美国节点, <<: *sg, filter: "(?i)(美|us|unitedstates|united states)" }
-  - { name: 🏳️ 其他节点, <<: *sg, filter: "^((?!(直连|香港|台|韩|新加坡|日本|美|官网|剩余|套餐|群|延迟)).)*$" }
-  - { name: 🛠️ 手动切换, <<: *sg, filter: "^((?!(直连|官网|剩余|套餐|群|延迟)).)*$" }
-  - { name: ♻️ 自动选择, <<: *ut,  filter: "^((?!(直连|官网|剩余|套餐|群|延迟)).)*$" }
+  - {name: 🇭🇰 香港节点, <<: *sg, filter: "(?i)(香港|hk|hongkong|hong kong)"}
+  - {name: 🇨🇳 台湾节点, <<: *sg, filter: "(?i)(台|tw|taiwan)"}
+  - {name: 🇸🇬 狮城节点, <<: *sg, filter: "(?i)(新加坡|sg|singapore)"}
+  - {name: 🇯🇵 日韩节点, <<: *sg, filter: "(?i)(日本|jp|japan|韩|kr|korea)"}
+  - {name: 🇺🇲 美国节点, <<: *sg, filter: "(?i)(美国|usa|us|unitedstates|united states)"}
+  - {name: 🏳️ 其他节点, <<: *sg, filter: "^((?!(直连|港|台|新加坡|日|美|us|官网|剩余|套餐|群|延迟|原生|线路|教程|前置)).)*$"}
+  - {name: 🛠️ 手动切换, <<: *sg, filter: "^((?!(直连|官网|剩余|套餐|群|延迟|原生|线路|教程|前置)).)*$"}
+  - {name: ♻️ 自动选择, <<: *ut,  filter: "^((?!(直连|官网|剩余|套餐|群|延迟|原生|线路|教程|前置)).)*$"}
 
 rules:
+  
+  - IP-CIDR,100.64.0.0/10,DIRECT,no-resolve
   - DST-PORT,3478,REJECT
   - DST-PORT,3479,REJECT
   - DST-PORT,5349,REJECT
   - DST-PORT,19302,REJECT
   - RULE-SET,ads,🛑 广告拦截
+  - RULE-SET,private_ip,🟢 直连,no-resolve
   - RULE-SET,private,🟢 直连
-  - RULE-SET,cn_ip,🟢 直连
   - RULE-SET,custom_direct,🟢 直连
   - RULE-SET,custom_proxy,🚀 节点选择
   - RULE-SET,spotify,🎧 Spotify
@@ -122,43 +143,48 @@ rules:
   - RULE-SET,google-cn,🇬 谷歌服务
   - RULE-SET,github,💻 GitHub
   #- RULE-SET,onedrive,🌐 OneDrive
-  #- RULE-SET,adobe,🅰️ Adobe
-  #- RULE-SET,adobe@cn,🅰️ Adobe
-  #- RULE-SET,steam,🎮 steam
+  - RULE-SET,adobe,🅰️ Adobe
+  - RULE-SET,adobe@cn,🅰️ Adobe
+  - RULE-SET,bahamut,📺 巴哈姆特
+  - RULE-SET,cloudflare,☁️ Cloudflare
   - RULE-SET,microsoft,Ⓜ️ 微软服务
   - RULE-SET,apple,🍎 苹果服务
   - RULE-SET,telegram,📲 Telegram
-  - RULE-SET,geolocation-!cn,🚀 节点选择
   - RULE-SET,google_ip,🇬 谷歌服务,no-resolve
   - RULE-SET,telegram_ip,📲 Telegram,no-resolve
+  - RULE-SET,geolocation-!cn,🚀 节点选择
   - RULE-SET,cn,🟢 直连
+  - RULE-SET,cn_ip,🟢 直连
   - MATCH,🐟 漏网之鱼
 
 rule-anchor:
   ip: &ip {type: http, interval: 86400, behavior: ipcidr, format: mrs}
   domain: &domain {type: http, interval: 86400, behavior: domain, format: mrs}
   cl: &cl {type: http, interval: 86400, behavior: classical, format: yaml}
-rule-providers:      
-  private:  { <<: *domain, path: ./providers/rule/private.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/private.mrs"}
-  ads: { <<: *domain, path: ./providers/rule/ads.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ads-all.mrs"}
-  spotify: { <<: *domain, path: ./providers/rule/spotify.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/spotify.mrs"}
-  github: {  <<: *domain, path: ./providers/rule/github.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/github.mrs"}
-  ai: { <<: *domain, path: ./providers/rule/ai.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ai-!cn.mrs"}
-  youtube: { <<: *domain, path: ./providers/rule/youtube.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/youtube.mrs"}
-  google: {  <<: *domain, path: ./providers/rule/google.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google.mrs"}
-  google-cn: {  <<: *domain, path: ./providers/rule/google-cn.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google-cn.mrs"}
-  telegram: {  <<: *domain, path: ./providers/rule/telegram.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/telegram.mrs"}
-  #onedrive: {  <<: *domain, path: ./providers/rule/onedrive.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/onedrive.mrs"}
-  #adobe: {  <<: *domain, path: ./providers/rule/adobe.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/adobe.mrs"}
-  #adobe@cn: {  <<: *domain, path: ./providers/rule/adobe@cn.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/adobe@cn.mrs"}
-  #steam: {  <<: *domain, path: ./providers/rule/steam.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/steam.mrs"}
-  microsoft: {  <<: *domain, path: ./providers/rule/microsoft.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/microsoft.mrs"}
-  apple: { <<: *domain, path: ./providers/rule/apple.mrs, url: "https://gh-proxy.com/https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/apple-cn.mrs"}
-  geolocation-!cn: { <<: *domain, path: ./providers/rule/geolocation-!cn.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/geolocation-!cn.mrs"}
-  cn: {  <<: *domain, path: ./providers/rule/cn.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cn.mrs"}
-  custom_direct: {  <<: *cl, path: ./providers/rule/custom_direct.yaml, url: "https://gh-proxy.com/https://gist.githubusercontent.com/huanchenshang/e90b30b281fa5663698b5184c4fa580a/raw/custom_direct.yaml"}
-  custom_proxy: {  <<: *cl, path: ./providers/rule/custom_proxy.yaml, url: "https://gh-proxy.com/https://gist.githubusercontent.com/huanchenshang/5c8f5774ccc2cec007611510761afcf2/raw/custom_proxy.yaml"}
-  
-  cn_ip: {  <<: *ip, path: ./providers/rule/cn_ip.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/cn.mrs"}
-  google_ip: {  <<: *ip, path: ./providers/rule/google_ip.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/google.mrs"}
-  telegram_ip: {  <<: *ip, path: ./providers/rule/telegram_ip.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.mrs"}
+rule-providers:
+  fakeip-filter: {<<: *domain, path: ./providers/rule/fakeip-filter.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/wwqgtxx/clash-rules/release/fakeip-filter.mrs"}      
+  private: {<<: *domain, path: ./providers/rule/private.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/private.mrs"}
+  ads: {<<: *domain, path: ./providers/rule/ads.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ads-all.mrs"}
+  spotify: {<<: *domain, path: ./providers/rule/spotify.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/spotify.mrs"}
+  github: {<<: *domain, path: ./providers/rule/github.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/github.mrs"}
+  ai: {<<: *domain, path: ./providers/rule/ai.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ai-!cn.mrs"}
+  youtube: {<<: *domain, path: ./providers/rule/youtube.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/youtube.mrs"}
+  google: {<<: *domain, path: ./providers/rule/google.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google.mrs"}
+  google-cn: {<<: *domain, path: ./providers/rule/google-cn.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google-cn.mrs"}
+  telegram: {<<: *domain, path: ./providers/rule/telegram.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/telegram.mrs"}
+  #onedrive: {<<: *domain, path: ./providers/rule/onedrive.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/onedrive.mrs"}
+  adobe: {<<: *domain, path: ./providers/rule/adobe.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/adobe.mrs"}
+  adobe@cn: {<<: *domain, path: ./providers/rule/adobe@cn.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/adobe@cn.mrs"}
+  bahamut: {<<: *domain, path: ./providers/rule/bahamut.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/bahamut.mrs"}
+  microsoft: {<<: *domain, path: ./providers/rule/microsoft.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/microsoft.mrs"}
+  apple: {<<: *domain, path: ./providers/rule/apple.mrs, url: "https://gh-proxy.com/https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/apple.mrs"}
+  geolocation-!cn: {<<: *domain, path: ./providers/rule/geolocation-!cn.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/geolocation-!cn.mrs"}
+  cn: {<<: *domain, path: ./providers/rule/cn.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cn.mrs"}
+  custom_direct: {<<: *cl, path: ./providers/rule/custom_direct.yaml, url: "https://gh-proxy.com/https://gist.githubusercontent.com/huanchenshang/e90b30b281fa5663698b5184c4fa580a/raw/custom_direct.yaml"}
+  custom_proxy: {<<: *cl, path: ./providers/rule/custom_proxy.yaml, url: "https://gh-proxy.com/https://gist.githubusercontent.com/huanchenshang/5c8f5774ccc2cec007611510761afcf2/raw/custom_proxy.yaml"}
+  cloudflare: {<<: *domain, path: ./providers/rule/cloudflare.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cloudflare.mrs"}  
+
+  private_ip: {<<: *ip, path: ./providers/rule/private_ip.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/private.mrs"}
+  cn_ip: {<<: *ip, path: ./providers/rule/cn_ip.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/cn.mrs"}
+  google_ip: {<<: *ip, path: ./providers/rule/google_ip.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/google.mrs"}
+  telegram_ip: {<<: *ip, path: ./providers/rule/telegram_ip.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.mrs"}
