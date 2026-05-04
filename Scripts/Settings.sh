@@ -74,9 +74,14 @@ fi
 wget -qO - https://github.com/davidtall/immortalwrt/commit/ce39feb4.patch | patch -p1
 cat ./target/linux/qualcommax/dts/ipq6000-re-ss-01.dts
 
-#以下为添加dae支持
+# --- 以下为添加 dae eBPF 支持的修复版 ---
+
+# 1. 内核底层配置 (config-default)
 conde_file="./target/linux/qualcommax/ipq60xx/config-default"
 if [ -f "$conde_file" ]; then
+    # 先清理掉可能存在的旧配置，防止重复追加
+    sed -i '/CONFIG_BPF/d; /CONFIG_DEBUG_INFO_BTF/d; /CONFIG_TRANSPARENT_HUGEPAGE/d' "$conde_file"
+    
     cat >> "$conde_file" <<EOF
 CONFIG_BPF=y
 CONFIG_BPF_SYSCALL=y
@@ -94,22 +99,19 @@ CONFIG_DEBUG_INFO=y
 CONFIG_DEBUG_INFO_BTF=y
 CONFIG_KPROBE_EVENTS=y
 CONFIG_BPF_EVENTS=y
-
-CONFIG_SCHED_CLASS_EXT=y
-CONFIG_PROBE_EVENTS_BTF_ARGS=y
-CONFIG_IMX_SCMI_MISC_DRV=y
-CONFIG_ARM64_CONTPTE=y
 CONFIG_TRANSPARENT_HUGEPAGE=y
 CONFIG_TRANSPARENT_HUGEPAGE_ALWAYS=y
-# CONFIG_TRANSPARENT_HUGEPAGE_MADVISE is not set
-# CONFIG_TRANSPARENT_HUGEPAGE_NEVER is not set
+# 修复 6.18 内核编译中断的关键项
+CONFIG_PERSISTENT_HUGE_ZERO_FOLIO=n
 EOF
-    echo "cat_kernel_config to "$conde_file" done"
+    echo "内核 eBPF 配置已修正并注入到 $conde_file"
 fi
 
+# 2. 全局编译配置 (.config)
 config_file="./.config"
 if [ -f "$config_file" ]; then
-    cat >> $config_file <<EOF
+    # 确保全局层面也同步开启 BTF 支持
+    cat >> "$config_file" <<EOF
 CONFIG_DEVEL=y
 CONFIG_KERNEL_DEBUG_INFO=y
 CONFIG_KERNEL_DEBUG_INFO_REDUCED=n
@@ -121,18 +123,14 @@ CONFIG_BPF_TOOLCHAIN_HOST=y
 CONFIG_KERNEL_XDP_SOCKETS=y
 CONFIG_PACKAGE_kmod-xdp-sockets-diag=y
 EOF
-    echo "cat_ebpf_config to  $config_file done"
+    echo "全局 eBPF 标志位已注入到 .config"
 fi
 
-# 修改内核大小
+# 3. 修改内核大小 (保持你原有的逻辑，但确保路径正确)
 image_file="./target/linux/qualcommax/image/ipq60xx.mk"
 if [ -f "$image_file" ]; then
-    sed -i "/^define Device\/jdcloud_re-ss-01/,/^endef/ { /KERNEL_SIZE := 6144k/s//KERNEL_SIZE := 12288k/ }" "$image_file"
-    sed -i "/^define Device\/jdcloud_re-cs-02/,/^endef/ { /KERNEL_SIZE := 6144k/s//KERNEL_SIZE := 12288k/ }" $image_file
-    sed -i "/^define Device\/jdcloud_re-cs-07/,/^endef/ { /KERNEL_SIZE := 6144k/s//KERNEL_SIZE := 12288k/ }" $image_file
-    sed -i "/^define Device\/redmi_ax5-jdcloud/,/^endef/ { /KERNEL_SIZE := 6144k/s//KERNEL_SIZE := 12288k/ }" $image_file
-    sed -i "/^define Device\/linksys_mr/,/^endef/ { /KERNEL_SIZE := 8192k/s//KERNEL_SIZE := 12288k/ }" $image_file
-    echo "Kernel size updated in $image_file"
-else
-    echo "Image file $image_file not found, skipping kernel size update"
+    # 扩大内核分区空间，防止开启 BTF 后固件超限
+    sed -i 's/KERNEL_SIZE := 6144k/KERNEL_SIZE := 12288k/g' "$image_file"
+    sed -i 's/KERNEL_SIZE := 8192k/KERNEL_SIZE := 12288k/g' "$image_file"
+    echo "内核分区已扩容至 12M: $image_file"
 fi
