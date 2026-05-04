@@ -69,7 +69,11 @@ dhcp_file="./package/network/services/dnsmasq/files/dhcp.conf"
 if [ -f "$dhcp_file" ]; then
     sed -i "s/option dns_redirect\t1/option dns_redirect\t0/g" "$dhcp_file"
 fi
-	
+
+#亚瑟修复USB2.0日志报错问题
+wget -qO - https://github.com/davidtall/immortalwrt/commit/ce39feb4.patch | patch -p1
+cat ./target/linux/qualcommax/dts/ipq6000-re-ss-01.dts
+
 #以下为添加dae支持
 conde_file="./target/linux/qualcommax/ipq60xx/config-default"
 if [ -f "$conde_file" ]; then
