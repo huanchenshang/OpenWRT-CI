@@ -48,15 +48,21 @@ if [ -n "$WRT_PACKAGE" ]; then
 fi
 
 #高通平台调整
-DTS_PATH="./target/linux/qualcommax/dts/"
+DTS_PATH="./target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/"
 if [[ "${WRT_TARGET^^}" == *"QUALCOMMAX"* ]]; then
 	#取消nss相关feed
 	echo "CONFIG_FEED_nss_packages=n" >> ./.config
 	echo "CONFIG_FEED_sqm_scripts_nss=n" >> ./.config
+	#开启sqm-nss插件
+	#echo "CONFIG_PACKAGE_luci-app-sqm=y" >> ./.config
+	#echo "CONFIG_PACKAGE_sqm-scripts-nss=y" >> ./.config
 	#设置NSS版本
 	echo "CONFIG_NSS_FIRMWARE_VERSION_11_4=n" >> ./.config
-	echo "CONFIG_NSS_FIRMWARE_VERSION_12_5=y" >> ./.config
-
+	if [[ "${WRT_CONFIG,,}" == *"ipq50"* ]]; then
+		echo "CONFIG_NSS_FIRMWARE_VERSION_12_2=y" >> ./.config
+	else
+		echo "CONFIG_NSS_FIRMWARE_VERSION_12_5=y" >> ./.config
+	fi
 	#无WIFI配置调整Q6大小
 	if [[ "${WRT_CONFIG,,}" == *"wifi"* && "${WRT_CONFIG,,}" == *"no"* ]]; then
 		find $DTS_PATH -type f ! -iname '*nowifi*' -exec sed -i 's/ipq\(6018\|8074\).dtsi/ipq\1-nowifi.dtsi/g' {} +
@@ -69,19 +75,10 @@ dhcp_file="./package/network/services/dnsmasq/files/dhcp.conf"
 if [ -f "$dhcp_file" ]; then
     sed -i "s/option dns_redirect\t1/option dns_redirect\t0/g" "$dhcp_file"
 fi
-
-#亚瑟修复USB2.0日志报错问题
-wget -qO - https://github.com/davidtall/immortalwrt/commit/ce39feb4.patch | patch -p1
-cat ./target/linux/qualcommax/dts/ipq6000-re-ss-01.dts
-
-# --- 以下为添加 dae eBPF 支持的修复版 ---
-
-# 1. 内核底层配置 (config-default)
+	
+#以下为添加dae支持
 conde_file="./target/linux/qualcommax/ipq60xx/config-default"
 if [ -f "$conde_file" ]; then
-    # 先清理掉可能存在的旧配置，防止重复追加
-    sed -i '/CONFIG_BPF/d; /CONFIG_DEBUG_INFO_BTF/d; /CONFIG_TRANSPARENT_HUGEPAGE/d' "$conde_file"
-    
     cat >> "$conde_file" <<EOF
 CONFIG_BPF=y
 CONFIG_BPF_SYSCALL=y
@@ -99,19 +96,22 @@ CONFIG_DEBUG_INFO=y
 CONFIG_DEBUG_INFO_BTF=y
 CONFIG_KPROBE_EVENTS=y
 CONFIG_BPF_EVENTS=y
+
+CONFIG_SCHED_CLASS_EXT=y
+CONFIG_PROBE_EVENTS_BTF_ARGS=y
+CONFIG_IMX_SCMI_MISC_DRV=y
+CONFIG_ARM64_CONTPTE=y
 CONFIG_TRANSPARENT_HUGEPAGE=y
 CONFIG_TRANSPARENT_HUGEPAGE_ALWAYS=y
-# 修复 6.18 内核编译中断的关键项
-CONFIG_PERSISTENT_HUGE_ZERO_FOLIO=n
+# CONFIG_TRANSPARENT_HUGEPAGE_MADVISE is not set
+# CONFIG_TRANSPARENT_HUGEPAGE_NEVER is not set
 EOF
-    echo "内核 eBPF 配置已修正并注入到 $conde_file"
+    echo "cat_kernel_config to "$conde_file" done"
 fi
 
-# 2. 全局编译配置 (.config)
 config_file="./.config"
 if [ -f "$config_file" ]; then
-    # 确保全局层面也同步开启 BTF 支持
-    cat >> "$config_file" <<EOF
+    cat >> $config_file <<EOF
 CONFIG_DEVEL=y
 CONFIG_KERNEL_DEBUG_INFO=y
 CONFIG_KERNEL_DEBUG_INFO_REDUCED=n
@@ -123,14 +123,18 @@ CONFIG_BPF_TOOLCHAIN_HOST=y
 CONFIG_KERNEL_XDP_SOCKETS=y
 CONFIG_PACKAGE_kmod-xdp-sockets-diag=y
 EOF
-    echo "全局 eBPF 标志位已注入到 .config"
+    echo "cat_ebpf_config to  $config_file done"
 fi
 
-# 3. 修改内核大小 (保持你原有的逻辑，但确保路径正确)
+# 修改内核大小
 image_file="./target/linux/qualcommax/image/ipq60xx.mk"
 if [ -f "$image_file" ]; then
-    # 扩大内核分区空间，防止开启 BTF 后固件超限
-    sed -i 's/KERNEL_SIZE := 6144k/KERNEL_SIZE := 12288k/g' "$image_file"
-    sed -i 's/KERNEL_SIZE := 8192k/KERNEL_SIZE := 12288k/g' "$image_file"
-    echo "内核分区已扩容至 12M: $image_file"
+    sed -i "/^define Device\/jdcloud_re-ss-01/,/^endef/ { /KERNEL_SIZE := 6144k/s//KERNEL_SIZE := 12288k/ }" "$image_file"
+    sed -i "/^define Device\/jdcloud_re-cs-02/,/^endef/ { /KERNEL_SIZE := 6144k/s//KERNEL_SIZE := 12288k/ }" $image_file
+    sed -i "/^define Device\/jdcloud_re-cs-07/,/^endef/ { /KERNEL_SIZE := 6144k/s//KERNEL_SIZE := 12288k/ }" $image_file
+    sed -i "/^define Device\/redmi_ax5-jdcloud/,/^endef/ { /KERNEL_SIZE := 6144k/s//KERNEL_SIZE := 12288k/ }" $image_file
+    sed -i "/^define Device\/linksys_mr/,/^endef/ { /KERNEL_SIZE := 8192k/s//KERNEL_SIZE := 12288k/ }" $image_file
+    echo "Kernel size updated in $image_file"
+else
+    echo "Image file $image_file not found, skipping kernel size update"
 fi

@@ -169,7 +169,7 @@ jobs:
           fi
 
           $GITHUB_WORKSPACE/Scripts/Settings.sh
-          make olddefconfig
+
           make defconfig -j$(nproc) && make clean -j$(nproc)
 
       - name: Download Packages
