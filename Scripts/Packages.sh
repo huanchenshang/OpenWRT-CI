@@ -124,7 +124,13 @@ UPDATE_VERSION() {
 #UPDATE_VERSION "sing-box"
 #UPDATE_VERSION "tailscale"
 
+#引入私有扩展脚本
+if [ -f "$GITHUB_WORKSPACE/Scripts/PRIVATE.sh" ]; then
+	source "$GITHUB_WORKSPACE/Scripts/PRIVATE.sh"
+fi
+
 #删除官源插件
 rm -rf ../feeds/packages/net/v2ray-geodata
+rm -rf ../feeds/packages/net/onionshare-cli
 #复制package目录下文件到编译目录
 cp -r $GITHUB_WORKSPACE/package/* ./emortal
