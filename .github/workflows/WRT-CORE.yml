@@ -74,7 +74,7 @@ jobs:
           sudo -E apt -yqq autoremove --purge
           sudo -E apt -yqq autoclean
           sudo -E apt -yqq clean
-          sudo -E apt -yqq install dos2unix libfuse-dev
+          sudo -E apt -yqq install dos2unix python3-netifaces libfuse-dev
           sudo bash -c 'bash <(curl -sL https://build-scripts.immortalwrt.org/init_build_environment.sh)'
           sudo -E systemctl daemon-reload
           sudo -E timedatectl set-timezone "Asia/Shanghai"
@@ -162,29 +162,15 @@ jobs:
         run: |
           cd ./wrt/
 
-          # 合并配置文件
           if [[ "${WRT_CONFIG,,}" == *"test"* ]]; then
             cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt >> .config
           else
             cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt $GITHUB_WORKSPACE/Config/GENERAL.txt >> .config
           fi
 
-          # 执行自定义脚本
           $GITHUB_WORKSPACE/Scripts/Settings.sh
 
-          # --- 核心修复：处理内核新选项交互 ---
-          # 1. 强制应用默认内核配置，模拟按回车跳过所有 (NEW) 选项
-          # 使用 < /dev/null 强制结束任何潜在的读取等待
-          make kernel_oldconfig < /dev/null
-          
-          # 2. 刷新软件包依赖配置
-          make defconfig -j$(nproc)
-          
-          # 3. 再次确认内核配置完整性（可选但建议）
-          # make target/linux/refresh V=s
-          
-          # 4. 清理旧编译残留
-          make clean -j$(nproc)
+          make defconfig -j$(nproc) && make clean -j$(nproc)
 
       - name: Download Packages
         if: env.WRT_TEST != 'true'
@@ -198,7 +184,7 @@ jobs:
         run: |
           cd ./wrt/
 
-          make -j$(nproc) || make -j1 V=s
+          make -j$(nproc) || make -j$(nproc) V=s
 
       - name: Machine Information
         run: |
