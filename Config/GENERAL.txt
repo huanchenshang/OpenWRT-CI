@@ -2,7 +2,7 @@
 #CONFIG_PACKAGE_luci-app-homeproxy=y
 CONFIG_PACKAGE_luci-app-nikki=y
 CONFIG_PACKAGE_luci-app-daed=y
-CONFIG_PACKAGE_luci-app-momo=y
+#CONFIG_PACKAGE_luci-app-momo=y
 #5G模块支持
 #CONFIG_PACKAGE_luci-proto-modemmanager=y
 #CONFIG_PACKAGE_luci-proto-mbim=y
@@ -15,10 +15,10 @@ CONFIG_PACKAGE_luci-app-ttyd=y
 CONFIG_PACKAGE_luci-app-unishare=y
 CONFIG_PACKAGE_luci-app-cpufreq=y
 CONFIG_PACKAGE_luci-app-autoreboot=y
-#CONFIG_PACKAGE_luci-app-mini-diskmanager=y
-#CONFIG_PACKAGE_luci-app-partexp=y
 CONFIG_PACKAGE_luci-app-quickfile=y
 #删除插件
+#CONFIG_PACKAGE_luci-app-mini-diskmanager=y
+#CONFIG_PACKAGE_luci-app-partexp=y
 CONFIG_PACKAGE_luci-app-attendedsysupgrade=n
 CONFIG_PACKAGE_luci-app-diskman=n
 CONFIG_PACKAGE_luci-app-wol=n

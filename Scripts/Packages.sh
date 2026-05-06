@@ -121,3 +121,8 @@ rm -rf ../feeds/packages/net/{v2ray-geodata,daed}
 rm -rf ../feeds/luci/applications/luci-app-{openclash,daed}
 #复制package目录下文件到编译目录
 cp -r $GITHUB_WORKSPACE/package/* ./emortal
+
+#修复daed/Makefile
+sed -i 's/pnpm install ; \\/pnpm install --no-frozen-lockfile ; \\/g' luci-app-daed/daed/Makefile
+sed -i 's|github.com/daeuniverse/quic-go|github.com/olicesx/quic-go|g' luci-app-daed/daed/Makefile
+sed -i 's|/run/i\\  procd_set_param|/procd_set_param command/i \\\tprocd_set_param|g' luci-app-daed/luci-app-daed/root/etc/init.d/luci_daed
