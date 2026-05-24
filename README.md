@@ -12,7 +12,7 @@ https://github.com/chenxin527/uboot-ipq60xx-emmc-build.git
 
 # 固件简要说明：
 
-固件每周六早上5点自动编译。
+固件每周五早上5点自动编译。
 
 固件信息里的时间为编译开始的时间，方便核对上游源码提交时间。
 
