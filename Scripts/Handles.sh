@@ -137,6 +137,17 @@ else
     echo "argon-config.po文件没有找到"
 fi
 
+#修改Vlmcsd KMS名称显示
+Vlmcsd_path="$GITHUB_WORKSPACE/wrt/feeds/luci/applications/luci-app-vlmcsd"
+Vlmcsdpo_file="$Vlmcsd_path/po/zh_Hans/vlmcsd.po"
+
+if [ -d "$Vlmcsd_path" ] && [ -f "$Vlmcsdpo_file" ]; then
+    sed -i 's/msgstr "Vlmcsd KMS 服务器"/msgstr "KMS服务"/g' "$Vlmcsdpo_file"
+    echo "Vlmcsd KMS更名成功"
+else
+    echo "vlmcsd.po文件没有找到"
+fi
+
 #更换argon源
 argon_url="https://github.com/huanchenshang/luci-theme-argon.git"
 dst_theme_path="../feeds/luci/themes/luci-theme-argon"
