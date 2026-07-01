@@ -177,7 +177,7 @@ rule-providers:
   adobe@cn: {<<: *domain, path: ./providers/rule/adobe@cn.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/adobe@cn.mrs"}
   bahamut: {<<: *domain, path: ./providers/rule/bahamut.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/bahamut.mrs"}
   microsoft: {<<: *domain, path: ./providers/rule/microsoft.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/microsoft.mrs"}
-  apple: {<<: *domain, path: ./providers/rule/apple.mrs, url: "https://gh-proxy.com/https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/apple.mrs"}
+  apple: {<<: *domain, path: ./providers/rule/apple.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/apple.mrs"}
   geolocation-!cn: {<<: *domain, path: ./providers/rule/geolocation-!cn.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/geolocation-!cn.mrs"}
   cn: {<<: *domain, path: ./providers/rule/cn.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cn.mrs"}
   custom_direct: {<<: *cl, path: ./providers/rule/custom_direct.yaml, url: "https://gh-proxy.com/https://gist.githubusercontent.com/huanchenshang/e90b30b281fa5663698b5184c4fa580a/raw/custom_direct.yaml"}
