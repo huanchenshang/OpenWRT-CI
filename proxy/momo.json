@@ -72,7 +72,7 @@
   ],
 
   "outbounds": [
-    {"tag": "🚀 节点选择", "type": "selector", "outbounds": ["🛠️ 手动选择", "🇨🇳 台湾节点", "🇭🇰 香港节点", "🇯🇵 日本节点", "🇸🇬 狮城节点", "🇺🇲 美国节点", "🏳️ 其他节点", "🟢 直连"]},
+    {"tag": "🚀 节点选择", "type": "selector", "outbounds": ["♻️ 自动选择", "🛠️ 手动选择", "🇨🇳 台湾节点", "🇭🇰 香港节点", "🇯🇵 日本节点", "🇸🇬 狮城节点", "🇺🇲 美国节点", "🏳️ 其他节点", "🟢 直连"]},
     {"tag": "🛑 广告拦截", "type": "selector", "outbounds": ["REJECT", "DIRECT"]},
     {"tag": "🐟 漏网之鱼", "type": "selector", "outbounds": ["🟢 直连", "🚀 节点选择"]},
     {"tag": "🤖 AI服务", "type": "selector", "outbounds": ["🚀 节点选择", "🇨🇳 台湾节点", "🇭🇰 香港节点", "🇯🇵 日本节点", "🇸🇬 狮城节点", "🇺🇲 美国节点", "🏳️ 其他节点", "🟢 直连"]},
@@ -91,7 +91,8 @@
     {"tag": "🇺🇲 美国节点", "type": "selector", "outbounds": null, "use_all_providers": true, "include": "美|us|unitedstates|united states"},
     {"tag": "🏳️ 其他节点", "type": "selector", "outbounds": null, "use_all_providers": true, "exclude": "直连|香港|台|韩|新加坡|日本|美|官网|剩余|套餐|群"},
     {"tag": "🛠️ 手动选择", "type": "selector", "outbounds": null, "use_all_providers": true, "exclude": "直连|官网|剩余|套餐|群"},
-    {"tag": "GLOBAL", "type": "selector", "outbounds": ["🚀 节点选择", "🛑 广告拦截", "🐟 漏网之鱼", "🤖 AI服务", "🎧 Spotify", "📹 YouTube", "💻 GitHub", "🌐 OneDrive", "📲 Telegram", "🇬 Google", "Ⓜ️ Microsoft", "🍎 Apple", "🇨🇳 台湾节点", "🇭🇰 香港节点", "🇯🇵 日本节点", "🇸🇬 狮城节点", "🇺🇲 美国节点", "🏳️ 其他节点", "🛠️ 手动选择", "🟢 直连"]},
+    {"tag": "♻️ 自动选择", "type": "urltest", "outbounds": null, "use_all_providers": true, "exclude": "直连|官网|剩余|套餐|群"},
+    {"tag": "GLOBAL", "type": "selector", "outbounds": ["🚀 节点选择", "🛑 广告拦截", "🐟 漏网之鱼", "🤖 AI服务", "🎧 Spotify", "📹 YouTube", "💻 GitHub", "🌐 OneDrive", "📲 Telegram", "🇬 Google", "Ⓜ️ Microsoft", "🍎 Apple", "🇨🇳 台湾节点", "🇭🇰 香港节点", "🇯🇵 日本节点", "🇸🇬 狮城节点", "🇺🇲 美国节点", "🏳️ 其他节点", "🛠️ 手动选择", "♻️ 自动选择",  "🟢 直连"]},
     {"tag": "🟢 直连", "type": "direct"},
     {"tag": "REJECT", "type": "block"},
     {"tag": "DIRECT", "type": "direct"}
