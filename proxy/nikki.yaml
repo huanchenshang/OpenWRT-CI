@@ -78,7 +78,6 @@ dns:
   fake-ip-filter:
     - "+.lan"
     - "+.local"
-    - "+.xn--ngstr-lra8j.com"
     - "rule-set:fakeip-filter"
     - "rule-set:private"
     - "rule-set:cn"
@@ -144,7 +143,7 @@ rules:
   - RULE-SET,youtube,📹 Youtube
   - RULE-SET,ai,🤖 AI服务
   - RULE-SET,google,🇬 谷歌服务
-  - RULE-SET,google-cn,🇬 谷歌服务
+  - RULE-SET,google@cn,🇬 谷歌服务
   - RULE-SET,github,💻 GitHub
   #- RULE-SET,onedrive,🌐 OneDrive
   - RULE-SET,adobe,🅰️ Adobe
@@ -174,7 +173,7 @@ rule-providers:
   ai: {<<: *domain, path: ./providers/rule/ai.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ai-!cn.mrs"}
   youtube: {<<: *domain, path: ./providers/rule/youtube.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/youtube.mrs"}
   google: {<<: *domain, path: ./providers/rule/google.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google.mrs"}
-  google-cn: {<<: *domain, path: ./providers/rule/google-cn.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google-cn.mrs"}
+  google@cn: {<<: *domain, path: ./providers/rule/google@cn.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google@cn.mrs"}
   telegram: {<<: *domain, path: ./providers/rule/telegram.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/telegram.mrs"}
   #onedrive: {<<: *domain, path: ./providers/rule/onedrive.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/onedrive.mrs"}
   adobe: {<<: *domain, path: ./providers/rule/adobe.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/adobe.mrs"}
