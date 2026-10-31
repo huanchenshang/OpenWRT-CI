@@ -175,16 +175,27 @@ else
 fi
 
 #修改automount自动加载和修复ntfs硬盘显示中文
+# 注意: 上游 fstools-2026.10.18 已重构 handle_mount(改用 mount_opts_get/exec_mount),
+# 老 0100/0200 patch 按行号打必然 FAILED,改用与版本无关的 sed 直接改源码
 fstools_path="$GITHUB_WORKSPACE/wrt/package/system/fstools/patches"
-automount_file="$GITHUB_WORKSPACE/files/0100-automount.patch"
-ntfs_file="$GITHUB_WORKSPACE/files/0200-ntfs3-with-utf8.patch"
-
-if [ -d "$fstools_path" ]; then
-    cp -f "$automount_file" "$fstools_path"
-	cp -f "$ntfs_file" "$fstools_path"
-    echo "修改automount自动加载和修复ntfs硬盘显示中文成功"
+BLOCK_C="$GITHUB_WORKSPACE/wrt/package/system/fstools/block.c"
+if [ -f "$BLOCK_C" ]; then
+    # 删除会打失败的老补丁,避免 block.c.rej 导致编译中断
+    rm -f "$fstools_path/0100-automount.patch" "$fstools_path/0200-ntfs3-with-utf8.patch"
+    # 自动挂载: enabled '0'->'1', anon_mount '0'->'1' (用单引号避免转义坑)
+    sed -i 's/enabled\\t'"'0'"'/enabled\\t'"'1'"'/g' "$BLOCK_C"
+    sed -i 's/anon_mount\\t'"'0'"'/anon_mount\\t'"'1'"'/g' "$BLOCK_C"
+    # ntfs/fat 默认 utf8: 保留老0200补丁的本意(仅fat/ntfs才给iocharset,避免污染ext4/btrfs)
+    # 老补丁: if (strstr(fstype,"fat")||strstr(fstype,"ntfs")) _data="iocharset=utf8..."; mount(...: _data)
+    # 新block.c仍有 handle_mount(source,target,fstype,m) + mount(...(m && m->options) ? m->options : ""),直接把""换成条件式即可,行号无关
+    if grep -q '(m && m->options) ? m->options : ""' "$BLOCK_C"; then
+        sed -i 's/(m && m->options) ? m->options : ""/(m \&\& m->options) ? m->options : ((strstr(fstype, "fat") || strstr(fstype, "ntfs")) ? "iocharset=utf8,uid=65534,gid=65534" : "")/g' "$BLOCK_C"
+        echo "fstools block.c 已用sed修复(automount+ntfs utf8,仅fat/ntfs生效)!"
+    else
+        echo "警告: block.c 未找到 mount 默认 options 行,跳过ntfs utf8 sed"
+    fi
 else
-    echo "错误：修改automount和ntfs中文失败"
+    echo "错误：未找到 $BLOCK_C,跳过fstools sed修复"
 fi
 
 #添加定时清理内存
