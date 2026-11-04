@@ -1,14 +1,14 @@
 #!/bin/bash
 
 #修改argon主题设置
-ARGON_FILE="$GITHUB_WORKSPACE/wrt/feeds/luci/applications/luci-app-argon-config/root/etc/config/argon"
-DIY_FILE="$GITHUB_WORKSPACE/files/etc/config/argon"
-if [ -f "$ARGON_FILE" ]; then
- 
-    cp -f "$DIY_FILE" "$ARGON_FILE"
-
-	echo "argon主题参数设置成功!"
-fi
+#ARGON_FILE="$GITHUB_WORKSPACE/wrt/feeds/luci/applications/luci-app-argon-config/root/etc/config/argon"
+#DIY_FILE="$GITHUB_WORKSPACE/files/etc/config/argon"
+#if [ -f "$ARGON_FILE" ]; then
+# 
+#    cp -f "$DIY_FILE" "$ARGON_FILE"
+#
+#	echo "argon主题参数设置成功!"
+#fi
 
 #修改qca-nss-drv启动顺序
 NSS_DRV="../feeds/nss_packages/qca-nss-drv/files/qca-nss-drv.init"
@@ -127,7 +127,7 @@ else
 fi
 
 #修改Argon 主题设置名称显示
-argon_path="$GITHUB_WORKSPACE/wrt/feeds/luci/applications/luci-app-argon-config"
+argon_path="$GITHUB_WORKSPACE/wrt/feeds/luci/themes/luci-theme-argon"
 argonpo_file="$argon_path/po/zh_Hans/argon-config.po"
 
 if [ -d "$argon_path" ] && [ -f "$argonpo_file" ]; then
