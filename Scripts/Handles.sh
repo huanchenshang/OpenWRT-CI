@@ -230,3 +230,8 @@ EOF
     echo "BBR 配置文件创建成功！"
 fi
 
+#允许安装未签名apk
+APK_CONF="$GITHUB_WORKSPACE/wrt/package/base-files/files/etc/apk/config"
+mkdir -p "$(dirname "$APK_CONF")"
+echo "allow-untrusted" > "$APK_CONF"
+echo "apk allow-untrusted 已设置!"
