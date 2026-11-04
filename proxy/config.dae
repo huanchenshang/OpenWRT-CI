@@ -4,46 +4,62 @@ global {
     wan_interface: auto
     check_interval: 86400s
     auto_config_kernel_parameter: true
+    tls_implementation: utls
+    bootstrap_resolver: '119.29.29.29:53'
     allow_insecure: false
 }
 
-subscription {
-    airport: '订阅链接'
+# subscription {
+#     airport: '订阅链接'
+# }
+
+node {
+     sg: '节点链接'
+    # relay: 'vless://UUID@us.example.com:443?security=tls&sni=us.example.com -> trojan://密码@hk.example.com:443?sni=hk.example.com' # 链式代理：落地 -> 前置
 }
 
 dns {
   upstream {
-    googledns: 'tcp+udp://dns.google:53'
-    alidns: 'udp://dns.alidns.com:53'
+    googledns: 'https://8.8.8.8/dns-query'
+    alidns: 'https://223.5.5.5/dns-query'
   }
   routing {
     request {
+      qtype(https, svcb) -> reject
       qname(geosite:category-ads-all) -> reject
+      qname(suffix: steamcdn-a.akamaihd.net, suffix: cm.steampowered.com, suffix: steamserver.net) -> alidns
+      qname(geosite:steam@cn) -> alidns
+      qname(geosite: geolocation-!cn) -> googledns
       qname(geosite:cn) -> alidns
       fallback: googledns
+    }
+    response {
+            # googledns 解析出国内 IP 时改用 alidns 重查，拿到就近 CDN
+            upstream(googledns) && ip(geoip: cn) -> alidns
+            fallback: accept
     }
   }
 }
 
 group {
   proxy {
-    filter: subtag(airport) && name(keyword: '美国')
-    policy: min_moving_avg
+    filter: name(sg)
+    policy: fixed(0)
   }
-  sg {
-    filter: subtag(airport) && name(keyword: '新加坡')
-    policy: min_moving_avg
-  }
+#  sg {
+#    filter: subtag(airport) && name(keyword: '新加坡')
+#    policy: min_moving_avg
+#  }  
 }
 
 routing {
   pname(NetworkManager, systemd-resolved, dnsmasq) -> must_direct
   dip(224.0.0.0/3, 'ff00::/8') -> direct
-  l4proto(udp) && dport(443) -> block
-  domain(suffix: steamcdn-a.akamaihd.net, cm.steampowered.com, steamserver.net, wogg.xxooo.cf) -> direct
-  domain(geosite:spotify) -> sg
   dip(geoip:private, geoip:cn) -> direct
+  l4proto(udp) && dport(443) -> block
+  domain(suffix: steamcdn-a.akamaihd.net, suffix: cm.steampowered.com, suffix: steamserver.net) -> direct
+  domain(geosite:steam@cn) -> direct
+  domain(geosite:steam) -> proxy
   domain(geosite:cn) -> direct
   fallback: proxy
 }
-

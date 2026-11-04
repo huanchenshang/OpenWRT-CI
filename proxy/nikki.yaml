@@ -3,15 +3,16 @@ pr: &pr {type: select, proxies: [🚀 节点选择, 🛠️ 手动切换, 🇭�
 sel: &sel {type: select, proxies: [🟢 直连, 🚀 节点选择]}
 p: &p {type: http, interval: 86400, health-check: {enable: true, url: "http://www.gstatic.com/generate_204", interval: 86400, timeout: 3, tolerance: 2}}
 sg: &sg {type: select, include-all: true}
-ut: &ut {type: url-test, include-all: true, url: "http://www.gstatic.com/generate_204", interval: 86400, tolerance: 100, lazy: true}
+ut: &ut {type: url-test, include-all: true, url: "http://www.gstatic.com/generate_204", interval: 21600, tolerance: 100, lazy: true}
 fb: &fb {type: fallback, include-all: true, url: "http://www.gstatic.com/generate_204", interval: 86400}
 
 # 机场订阅，名称不能重复
 proxy-providers:
-  🛫 机场名字:
+  🛫 airport:
     <<: *p
     path: ./providers/proxy/airport.yaml
     url: "订阅链接"
+
 
 # 全局配置
 log-level: error
@@ -22,12 +23,12 @@ socks-port: 7891
 redir-port: 7892
 mixed-port: 7893
 tproxy-port: 7894
-find-process-mode: strict    
+find-process-mode: strict
 global-client-fingerprint: chrome
-keep-alive-idle: 300       
+keep-alive-idle: 300
 keep-alive-interval: 15
 disable-keep-alive: false
-ipv6: true   
+ipv6: true
 unified-delay: true
 tcp-concurrent: true
 profile:
@@ -40,6 +41,11 @@ secret: ""
 external-ui: ui
 external-ui-name: ""
 external-ui-url: https://gh-proxy.com/https://github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages.zip
+
+# NTP 校时（源自 mihomo，防止证书时间错误导致 TLS 失败）
+ntp:
+  enable: true
+  write-to-system: true
 
 # 嗅探
 sniffer:
@@ -56,19 +62,25 @@ sniffer:
     - "Mijia Cloud"
     - "+.push.apple.com"
 
-#TUN设置
+# TUN设置
 tun:
   enable: true
   stack: mixed
   auto-route: true
   auto-redirect: true
   auto-detect-interface: true
-  dns-hijack: ["any:53","tcp://any:53"]
+  dns-hijack: ["any:53", "tcp://any:53"]
+  # 源自 mihomo：把国内 IP 段排除出 TUN 路由，减少国内流量绕行开销
+  route-exclude-address-set:
+    - cn_ip
 
 # DNS模块
 dns:
   enable: true
   cache-algorithm: arc
+  prefer-h3: false
+  use-hosts: true
+  use-system-hosts: true
   listen: 0.0.0.0:1053
   ipv6: true
   respect-rules: true
@@ -90,16 +102,21 @@ dns:
   direct-nameserver:
     - https://dns.alidns.com/dns-query
     - https://doh.pub/dns-query
+  direct-nameserver-follow-policy: true
   nameserver-policy:
-    "rule-set:cn,custom_direct":
-      - https://dns.alidns.com/dns-query
-      - https://doh.pub/dns-query
+    # 国内直连域名走国内 DoH，并关闭 HTTPS(type65) 记录探测（源自 mihomo 防泄露/防 QUIC 发现）
+    # 扩展 @cn 细分：Steam 国区、私有域名等一并导向国内 DNS，避免被解析到海外 CDN
+    "rule-set:cn,custom_direct,private,steam@cn":
+      - https://dns.alidns.com/dns-query#disable-qtype-65=true
+      - https://doh.pub/dns-query#disable-qtype-65=true
   nameserver:
-    - https://8.8.8.8/dns-query#RULES&ecs=223.5.5.0/24
+    # respect-rules 让 DNS 遵循分流规则；disable-qtype-65 关闭 HTTPS 记录，防 QUIC 发现绕流
+    - https://1.1.1.1/dns-query#RULES&ecs=223.5.5.0/24&disable-qtype-65=true
+    - https://8.8.8.8/dns-query#RULES&ecs=223.5.5.0/24&disable-qtype-65=true
 
 proxies:
   - {name: 🟢 直连, type: direct, udp: true}
-
+  
 # 策略组
 proxy-groups:
   - { name: 🚀 节点选择, type: select, proxies: [♻️ 自动选择, 🛠️ 手动切换, 🇭🇰 香港节点, 🇨🇳 台湾节点, 🇸🇬 狮城节点, 🇯🇵 日韩节点, 🇺🇲 美国节点, 🏳️ 其他节点, 🟢 直连] }
@@ -108,6 +125,10 @@ proxy-groups:
   - {name: 📺 巴哈姆特, <<: *pr}
   - {name: 🎧 Spotify, <<: *pr}
   - {name: 📹 Youtube, <<: *pr}
+  - {name: 🎵 TikTok, <<: *pr}
+  - {name: 🎬 Netflix, <<: *pr}
+  - {name: 🎮 Steam, <<: *pr}
+  - {name: 💰 钱包金融, <<: *pr}
   - {name: 💻 GitHub, <<: *pr}
   #- {name: 🌐 OneDrive, <<: *sel}
   - {name: 🅰️ Adobe, <<: *pr}
@@ -123,17 +144,22 @@ proxy-groups:
   - {name: 🇸🇬 狮城节点, <<: *sg, filter: "(?i)(新加坡|sg|singapore)"}
   - {name: 🇯🇵 日韩节点, <<: *sg, filter: "(?i)(日本|jp|japan|韩|kr|korea)"}
   - {name: 🇺🇲 美国节点, <<: *sg, filter: "(?i)(美国|usa|us|unitedstates|united states)"}
-  - {name: 🏳️ 其他节点, <<: *sg, filter: "^((?!(直连|港|台|新加坡|日|美|us|官网|剩余|套餐|群|延迟|原生|线路|教程|前置)).)*$"}
+  - {name: 🏳️ 其他节点, <<: *sg, filter: "^((?!(直连|港|台|新加坡|日|韩|美|us|官网|剩余|套餐|群|延迟|原生|线路|教程|前置|99元|全网|到期|SKYLUMO|HK|TW|JP|KR|SG|US|CN)).)*$"}
   - {name: 🛠️ 手动切换, <<: *sg, filter: "^((?!(直连|官网|剩余|套餐|群|延迟|原生|线路|教程|前置)).)*$"}
   - {name: ♻️ 自动选择, <<: *ut,  filter: "^((?!(直连|官网|剩余|套餐|群|延迟|原生|线路|教程|前置)).)*$"}
 
 rules:
-  
+
   - IP-CIDR,100.64.0.0/10,DIRECT,no-resolve
+  # WebRTC/STUN 端口拦截（nikki 原有，防真实 IP 泄露）
   - DST-PORT,3478,REJECT
   - DST-PORT,3479,REJECT
   - DST-PORT,5349,REJECT
   - DST-PORT,19302,REJECT
+  # 源自 mihomo：对国外域名的 UDP/443(QUIC) 拒绝，强制回落 TCP，防 QUIC 绕过分流/泄露
+  - AND,((RULE-SET,geolocation-!cn),(DST-PORT,443),(NETWORK,UDP)),REJECT
+  #- DOMAIN-SUFFIX,opencode.ai,DIRECT
+  #- DOMAIN-KEYWORD,opencode,DIRECT
   - RULE-SET,ads,🛑 广告拦截
   - RULE-SET,private_ip,🟢 直连,no-resolve
   - RULE-SET,private,🟢 直连
@@ -141,6 +167,16 @@ rules:
   - RULE-SET,custom_proxy,🚀 节点选择
   - RULE-SET,spotify,🎧 Spotify
   - RULE-SET,youtube,📹 Youtube
+  - RULE-SET,tiktok,🎵 TikTok
+  - RULE-SET,netflix,🎬 Netflix
+  # Steam：国内商店/下载直连，其余走代理
+  - RULE-SET,steam@cn,🟢 直连
+  - RULE-SET,steam,🎮 Steam
+  # 钱包/金融（PayPal / Binance / OKX / 加密货币）
+  - RULE-SET,paypal,💰 钱包金融
+  - RULE-SET,binance,💰 钱包金融
+  - RULE-SET,okx,💰 钱包金融
+  - RULE-SET,crypto,💰 钱包金融
   - RULE-SET,ai,🤖 AI服务
   - RULE-SET,google,🇬 谷歌服务
   - RULE-SET,google@cn,🇬 谷歌服务
@@ -154,6 +190,7 @@ rules:
   - RULE-SET,apple,🍎 苹果服务
   - RULE-SET,telegram,📲 Telegram
   - RULE-SET,google_ip,🇬 谷歌服务,no-resolve
+  - RULE-SET,netflix_ip,🎬 Netflix,no-resolve
   - RULE-SET,telegram_ip,📲 Telegram,no-resolve
   - RULE-SET,geolocation-!cn,🚀 节点选择
   - RULE-SET,cn,🟢 直连
@@ -165,13 +202,22 @@ rule-anchor:
   domain: &domain {type: http, interval: 86400, behavior: domain, format: mrs}
   cl: &cl {type: http, interval: 86400, behavior: classical, format: yaml}
 rule-providers:
-  fakeip-filter: {<<: *domain, path: ./providers/rule/fakeip-filter.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/wwqgtxx/clash-rules/release/fakeip-filter.mrs"}      
+  fakeip-filter: {<<: *domain, path: ./providers/rule/fakeip-filter.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/wwqgtxx/clash-rules/release/fakeip-filter.mrs"}
   private: {<<: *domain, path: ./providers/rule/private.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/private.mrs"}
   ads: {<<: *domain, path: ./providers/rule/ads.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ads-all.mrs"}
   spotify: {<<: *domain, path: ./providers/rule/spotify.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/spotify.mrs"}
   github: {<<: *domain, path: ./providers/rule/github.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/github.mrs"}
   ai: {<<: *domain, path: ./providers/rule/ai.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ai-!cn.mrs"}
   youtube: {<<: *domain, path: ./providers/rule/youtube.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/youtube.mrs"}
+  # 新增:TikTok / Netflix / Steam / 钱包（源自 mihomo）
+  tiktok: {<<: *domain, path: ./providers/rule/tiktok.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/tiktok.mrs"}
+  netflix: {<<: *domain, path: ./providers/rule/netflix.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/netflix.mrs"}
+  steam: {<<: *domain, path: ./providers/rule/steam.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/steam.mrs"}
+  steam@cn: {<<: *domain, path: ./providers/rule/steam@cn.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/steam@cn.mrs"}
+  paypal: {<<: *domain, path: ./providers/rule/paypal.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/paypal.mrs"}
+  binance: {<<: *domain, path: ./providers/rule/binance.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/binance.mrs"}
+  okx: {<<: *domain, path: ./providers/rule/okx.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/okx.mrs"}
+  crypto: {<<: *domain, path: ./providers/rule/crypto.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-cryptocurrency.mrs"}
   google: {<<: *domain, path: ./providers/rule/google.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google.mrs"}
   google@cn: {<<: *domain, path: ./providers/rule/google@cn.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google@cn.mrs"}
   telegram: {<<: *domain, path: ./providers/rule/telegram.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/telegram.mrs"}
@@ -185,9 +231,10 @@ rule-providers:
   cn: {<<: *domain, path: ./providers/rule/cn.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cn.mrs"}
   custom_direct: {<<: *cl, path: ./providers/rule/custom_direct.yaml, url: "https://gh-proxy.com/https://gist.githubusercontent.com/huanchenshang/e90b30b281fa5663698b5184c4fa580a/raw/custom_direct.yaml"}
   custom_proxy: {<<: *cl, path: ./providers/rule/custom_proxy.yaml, url: "https://gh-proxy.com/https://gist.githubusercontent.com/huanchenshang/5c8f5774ccc2cec007611510761afcf2/raw/custom_proxy.yaml"}
-  cloudflare: {<<: *domain, path: ./providers/rule/cloudflare.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cloudflare.mrs"}  
+  cloudflare: {<<: *domain, path: ./providers/rule/cloudflare.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cloudflare.mrs"}
 
   private_ip: {<<: *ip, path: ./providers/rule/private_ip.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/private.mrs"}
   cn_ip: {<<: *ip, path: ./providers/rule/cn_ip.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/cn.mrs"}
   google_ip: {<<: *ip, path: ./providers/rule/google_ip.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/google.mrs"}
+  netflix_ip: {<<: *ip, path: ./providers/rule/netflix_ip.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/netflix.mrs"}
   telegram_ip: {<<: *ip, path: ./providers/rule/telegram_ip.mrs, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.mrs"}
