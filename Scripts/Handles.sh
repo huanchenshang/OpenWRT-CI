@@ -235,3 +235,50 @@ APK_CONF="$GITHUB_WORKSPACE/wrt/package/base-files/files/etc/apk/config"
 mkdir -p "$(dirname "$APK_CONF")"
 echo "allow-untrusted" > "$APK_CONF"
 echo "apk allow-untrusted 已设置!"
+
+#修复unishare：未启用webdav共享时不再常驻webdav2
+#上游 small-package/unishare/files/unishare.init 的 start_service() 无条件启动 webdav2，
+#即使 share proto 只选了 samba 也会多出 /usr/sbin/webdav2 :8888 (约10MB RSS)。
+#补丁：在 config_webdav 后检查 /var/run/unishare/root 是否为空，为空则直接 return，不起 daemon。
+#Handles.sh 执行时 cwd 为 wrt/package，unishare 刚被 Packages.sh 以 pkg 模式拷到 ./unishare
+UNISHARE_INIT="./unishare/files/unishare.init"
+if [ -f "$UNISHARE_INIT" ]; then
+    if ! grep -q "skip webdav2 when no webdav shares" "$UNISHARE_INIT"; then
+        awk '
+        /config_webdav \|\| return 1/ {
+            print
+            print "    # patch: skip webdav2 when no webdav shares"
+            print "    if ls /var/run/unishare/root/* >/dev/null 2>&1; then"
+            print "        :"
+            print "    else"
+            print "        return 0"
+            print "    fi"
+            print ""
+            next
+        }
+        {print}
+        ' "$UNISHARE_INIT" > /tmp/unishare.init.new && mv /tmp/unishare.init.new "$UNISHARE_INIT"
+        echo "unishare已被修复(无webdav共享时跳过webdav2)!"
+    else
+        echo "unishare补丁已存在，跳过!"
+    fi
+else
+    echo "未找到 $UNISHARE_INIT，跳过unishare修复"
+fi
+
+#nginx单worker：LuCI后台1个worker足够，4核默认auto会起4个，多占约15-20MB
+#模板在 feeds/packages/net/nginx-util，uci.conf每次启动由模板重建，直接改uci.conf无效
+for f in $(find ../feeds/packages/ -maxdepth 4 -type f -name "uci.conf.template" 2>/dev/null); do
+    if grep -q "worker_processes auto;" "$f"; then
+        sed -i 's/worker_processes auto;/worker_processes 1;/' "$f"
+        echo "nginx已修复($f: worker_processes 1)!"
+    fi
+done
+#兜底：当前package目录也找一下(不同feed布局)
+for f in $(find ./ -maxdepth 4 -type f -name "uci.conf.template" 2>/dev/null); do
+    if grep -q "worker_processes auto;" "$f"; then
+        sed -i 's/worker_processes auto;/worker_processes 1;/' "$f"
+        echo "nginx已修复($f: worker_processes 1)!"
+    fi
+done
+
