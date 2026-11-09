@@ -1,0 +1,4 @@
+# Shell 脚本和 uci-defaults 必须保持 LF 换行，否则路由器上无法执行
+files/etc/uci-defaults/* text eol=lf
+*.sh text eol=lf
+*.patch text eol=lf

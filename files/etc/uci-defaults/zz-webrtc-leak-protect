@@ -1,0 +1,28 @@
+#!/bin/sh
+# 防 WebRTC 泄露：禁止 lan 直连 wan 的 STUN/TURN 端口
+# 首次启动自动执行一次，执行成功后系统会自动删除本文件
+# 注意：dest_port 必须逐个 add_list，空格连写会被 fw4 拒绝
+
+add_leak_rule() {
+	local _name="$1" _proto="$2"; shift 2
+	# 已存在则跳过，避免重复
+	uci show firewall 2>/dev/null | grep -q "name='$_name'" && return 0
+	uci add firewall rule >/dev/null
+	local _sec
+	_sec=$(uci show firewall 2>/dev/null | grep -oE 'firewall.@rule\[[0-9]+\]=rule' | tail -1 | grep -oE '[0-9]+')
+	[ -z "$_sec" ] && return 1
+	uci set firewall.@rule[$_sec].name="$_name"
+	uci set firewall.@rule[$_sec].src='lan'
+	uci set firewall.@rule[$_sec].dest='wan'
+	uci set firewall.@rule[$_sec].proto="$_proto"
+	for _p in "$@"; do
+		uci add_list firewall.@rule[$_sec].dest_port="$_p"
+	done
+	uci set firewall.@rule[$_sec].target='DROP'
+}
+
+add_leak_rule 'Drop-STUN-UDP' 'udp' 3478 3479 5349 5350 19302 19303
+add_leak_rule 'Drop-TURN-TCP' 'tcp' 3478 5349
+
+uci commit firewall
+exit 0
