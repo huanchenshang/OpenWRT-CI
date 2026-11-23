@@ -121,6 +121,7 @@ jobs:
             echo "WRT_ARCH=$WRT_ARCH" >> $GITHUB_ENV
           }
           echo "$WRT_REPO/$WRT_BRANCH" > "$GITHUB_WORKSPACE/repo_flag"
+          
       - name: Clone Code
         run: |
           git clone --depth=1 --single-branch --branch $WRT_BRANCH $WRT_REPO ./wrt/
@@ -131,6 +132,45 @@ jobs:
           PROJECT_MIRRORS_FILE="./scripts/projectsmirrors.json"
           if [ -f "$PROJECT_MIRRORS_FILE" ]; then
             sed -i '/.cn\//d; /tencent/d; /aliyun/d' "$PROJECT_MIRRORS_FILE"
+          fi
+
+      - name: Restore libffi
+        run: |
+          cd ./wrt/
+
+          # main（高通 NSS 版）的快照里没有 package/libs/libffi，
+          # 而 feeds 里的 python3(3.14) 用 --with-system-ffi 编译 _ctypes，缺 ffi.h 会直接失败。
+          # libffi 是与平台无关的通用库，从同仓库分支（或上游）单独取这一个目录补回来。
+          if [ -d package/libs/libffi ]; then
+            echo "libffi 已存在，跳过"
+            exit 0
+          fi
+
+          fetch_libffi() {
+            repo=$1; ref=$2; dest=$(mktemp -d)
+            if git clone --depth=1 --filter=blob:none --sparse --single-branch --branch "$ref" "$repo" "$dest/src" >/dev/null 2>&1 \
+               && ( cd "$dest/src" && git sparse-checkout set package/libs/libffi >/dev/null 2>&1 ) \
+               && [ -d "$dest/src/package/libs/libffi" ]; then
+              cp -r "$dest/src/package/libs/libffi" package/libs/
+              echo "已从 $repo ($ref) 补回 libffi"
+              rm -rf "$dest"
+              return 0
+            fi
+            rm -rf "$dest"
+            return 1
+          }
+
+          fetch_libffi "$WRT_REPO" owrt \
+            || fetch_libffi "$WRT_REPO" main \
+            || fetch_libffi https://github.com/openwrt/openwrt master
+
+          if [ -d package/libs/libffi ]; then
+            echo "libffi 已补回:"
+            ls package/libs/libffi
+            grep -m1 -E 'PKG_VERSION|PKG_HASH' package/libs/libffi/Makefile
+          else
+            echo "无法获取 libffi，python3 将因缺少 ffi.h 而编译失败" >&2
+            exit 1
           fi
 
       - name: Check Scripts
